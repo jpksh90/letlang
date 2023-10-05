@@ -1,5 +1,6 @@
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
+use std::borrow::Cow;
 use std::iter::Peekable;
 use std::{process::id, vec};
 use thiserror::Error;
@@ -25,47 +26,6 @@ pub enum ParseError<'a> {
     DuplicateVars(&'a str),
     #[error("invalid complex number")]
     InvalidComplex(&'a str),
-}
-
-struct Tokenizer<'a> {
-    curr_token: Option<&'a str>,
-    next_token: Option<&'a str>,
-    index: usize,
-    program: &'a str,
-}
-
-impl<'a> Tokenizer<'a> {
-    fn new(program: &'a str) -> Self {
-        Tokenizer {
-            curr_token: None,
-            next_token: None,
-            index: 0,
-            program: program,
-        }
-    }
-
-    fn next_token(&mut self) -> Option<&'a str> {
-        let punctuators = vec!['+', '-', '*', '/', ' ', '(', ')', ';', '\n'];
-        let next_index = self.program[self.index..].find(|x: char| punctuators.contains(&x));
-        match next_index {
-            Some(i) => {
-                if i == self.index {
-                    Some(self.program[i..i].trim())
-                } else {
-                    Some(self.program[self.index..i].trim())
-                }
-            }
-            None => None,
-        }
-    }
-}
-
-impl<'a> Iterator for Tokenizer<'a> {
-    type Item = &'a str;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.next_token()
-    }
 }
 
 pub enum Token {
@@ -216,7 +176,7 @@ mod tests {
     use crate::ast::Stmt::{ExprStmt, Let};
     use crate::parser::{parse_expr, parse_let, parse_program, parse_stmt};
 
-    use super::parse_lambda_expr;
+    use super::{parse_lambda_expr, Tokenizer};
 
     #[test]
     fn test_let_ok_1() {
