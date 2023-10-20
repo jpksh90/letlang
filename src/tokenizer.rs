@@ -1,31 +1,58 @@
-use std::{borrow::Cow, iter::Peekable};
+use std::{borrow::Cow, iter::Peekable, ops::Index, str::Chars, vec};
+
+use num_complex::ComplexFloat;
 
 struct Tokenizer<'a> {
     offset: usize,
-    program: &'a str,
-    curr_token: Option<Cow<'a, str>>,
-    next_token: Option<Cow<'a, str>>,
+    program: Cow<'a, str>,
+}
+
+pub enum LexItem {
+    Paren(char),
+    Op(char),
+    Num(i64),
 }
 
 impl<'a> Tokenizer<'a> {
-    fn new(program: &'a str) -> Self {
+    pub fn new(program: &'a str) -> Self {
         Tokenizer {
             offset: 0,
-            program: program,
-            curr_token: None,
-            next_token: None,
+            program: Cow::Borrowed(program),
         }
     }
 }
 
 impl<'a> Iterator for Tokenizer<'a> {
-    type Item = Option<Cow<'a, str>>;
+    type Item = String;
 
-    fn next(&mut self) -> Option<Self::Item> {}
+    fn next(&mut self) -> Option<Self::Item> {
+        let punctuators = vec!['{', '}', '+', '-', '*', '/', '\n', ' '];
+        let mut acc = String::from("");
+        let mut index = self.offset;
+        let mut c = self.program.index(index);
+        match c {
+            '{' | '}' | '+' | '-' | '*' | '/' | '\n' | ' ' | '(' | ')' | '=' => {
+                self.offset = index + 1;
+                Some(String::from(c))
+            }
+            _ => {
+                while !punctuators.contains(&self.program.index(index))
+                    && index < self.program.len()
+                {
+                    c = self.program.as_bytes()[index] as char;
+                    acc.push(c);
+                    index = index + 1;
+                }
+                self.offset = index;
+                Some(acc)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::Tokenizer;
 
     #[test]
     fn tokenizer_works() {

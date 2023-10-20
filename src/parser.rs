@@ -176,7 +176,7 @@ mod tests {
     use crate::ast::Stmt::{ExprStmt, Let};
     use crate::parser::{parse_expr, parse_let, parse_program, parse_stmt};
 
-    use super::{parse_lambda_expr, Tokenizer};
+    use super::parse_lambda_expr;
 
     #[test]
     fn test_let_ok_1() {

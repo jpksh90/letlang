@@ -20,6 +20,7 @@ mod lambda_renamer;
 mod lazy_interpreter;
 mod parser;
 mod printer;
+mod tokenizer;
 mod transformer;
 mod typechecker;
 mod visit;
